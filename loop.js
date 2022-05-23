@@ -8,10 +8,10 @@ const Discord = require('discord.js');
 
 exports.loop = async client => {
   const servers = await Server.find({});
-  const root = parse((await axios.get('http://www.wspia.eu/uczelnia/aktualnosci')).data);
-  const news = root.querySelectorAll('.pageListItem');
+  const root = parse((await axios.get('https://wspia.eu/pl/uczelnia/aktualnosci/')).data);
+  const news = root.querySelectorAll('.blogposts > div');
   for(singleNews of news) {
-    const titleHash = md5(singleNews.querySelector('.pageListItemName a').text);
+    const titleHash = md5(singleNews.querySelector('.blogpost-title').text);
     try {
       const data = await News.findOne({hash: titleHash});
       if(!data) {
@@ -20,13 +20,13 @@ exports.loop = async client => {
           if(!channel) continue;
           let embed = new Discord.MessageEmbed()
             .setColor('#28254F')
-            .setTitle(singleNews.querySelector('.pageListItemName a').text)
-            .setURL(`http://wspia.eu${singleNews.querySelector('.pageListItemName a').getAttribute('href')}`)
-            .setDescription(singleNews.querySelector('.pageListItemDescription').text)
+            .setTitle(singleNews.querySelector('.blogpost-title').text)
+            .setURL(`http://wspia.eu${singleNews.querySelector('.blogpost-title').getAttribute('href')}`)
+            .setDescription(singleNews.querySelector('.blogpost-list-excerpt').text)
             .setThumbnail('http://www.wspia.eu/images/lay_new/logo.png')
-            .setImage(`http://wspia.eu${singleNews.querySelector('.pageListItemImage img').getAttribute('src')}`)
+            .setImage(`http://wspia.eu${singleNews.querySelector('img').getAttribute('src')}`)
             .setAuthor('WSPiA Rzeszowska Szkoła Wyższa', 'http://www.wspia.eu/images/lay_new/logo.png')
-            .setFooter(`${singleNews.querySelector('.pageListItemDate').text}  -  www.wspia.eu`, 'http://www.wspia.eu/images/lay_new/logo.png')
+            .setFooter(`${singleNews.querySelector('.blogpost-date').text}  -  www.wspia.eu`, 'http://www.wspia.eu/images/lay_new/logo.png')
           channel.send(embed);
           News.create({hash: titleHash}, err => {
             if(err) console.log(err);
